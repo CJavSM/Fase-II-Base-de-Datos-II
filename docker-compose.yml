@@ -13,6 +13,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: pollo_sanjuanero
       MONGO_KEY: "Wm9uZV9zZWN1cmVfa2V5X3BvbGxvX3Nlc3Npdm8tMjAyNQ=="
     volumes:
       - mongo1-data:/data/db
@@ -21,7 +22,6 @@ services:
       - ./backups:/backups
     networks:
       - mongo-network
-      - postgres-network
     command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -47,7 +47,6 @@ services:
       - mongo2-config:/data/configdb
     networks:
       - mongo-network
-      - postgres-network
     command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
     depends_on:
       mongo-primary:
@@ -76,7 +75,6 @@ services:
       - mongo3-config:/data/configdb
     networks:
       - mongo-network
-      - postgres-network
     command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
     depends_on:
       mongo-primary:
@@ -98,7 +96,6 @@ services:
       - ./backups:/backups
     networks:
       - mongo-network
-      - postgres-network
     depends_on:
       - mongo-primary
       - mongo-secondary1
@@ -116,5 +113,3 @@ volumes:
 networks:
   mongo-network:
     driver: bridge
-  postgres-network:
-    external: true  # Conecta con la red de PostgreSQL de Fase 1

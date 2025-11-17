@@ -102,8 +102,3 @@ print("  mongodb://usuario_app:app_password_2025@localhost:27017/pollo_sanjuaner
 print("\n====================================================");
 print("AUTENTICACIÓN CONFIGURADA CORRECTAMENTE");
 print("====================================================");
-
-print("\n⚠ IMPORTANTE: Para habilitar autenticación completa:");
-print("1. Deten los contenedores: docker-compose down");
-print("2. Modifica docker-compose.yml agregando '--auth' en command");
-print("3. Reinicia: docker-compose up -d");
