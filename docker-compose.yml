@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # MONGODB NODO 1: PRIMARIO
+  # ========================================
+  mongo-primary:
+    image: mongo:7.0
+    container_name: mongo-primary
+    hostname: mongo-primary
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_KEY: "Wm9uZV9zZWN1cmVfa2V5X3BvbGxvX3Nlc3Npdm8tMjAyNQ=="
+    volumes:
+      - mongo1-data:/data/db
+      - mongo1-config:/data/configdb
+      - ./scripts/mongo:/docker-entrypoint-initdb.d
+      - ./backups:/backups
+    networks:
+      - mongo-network
+      - postgres-network
+    command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # MONGODB NODO 2: SECUNDARIO 1
+  # ========================================
+  mongo-secondary1:
+    image: mongo:7.0
+    container_name: mongo-secondary1
+    hostname: mongo-secondary1
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_KEY: "Wm9uZV9zZWN1cmVfa2V5X3BvbGxvX3Nlc3Npdm8tMjAyNQ=="
+    volumes:
+      - mongo2-data:/data/db
+      - mongo2-config:/data/configdb
+    networks:
+      - mongo-network
+      - postgres-network
+    command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
+    depends_on:
+      mongo-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # MONGODB NODO 3: SECUNDARIO 2
+  # ========================================
+  mongo-secondary2:
+    image: mongo:7.0
+    container_name: mongo-secondary2
+    hostname: mongo-secondary2
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_KEY: "Wm9uZV9zZWN1cmVfa2V5X3BvbGxvX3Nlc3Npdm8tMjAyNQ=="
+    volumes:
+      - mongo3-data:/data/db
+      - mongo3-config:/data/configdb
+    networks:
+      - mongo-network
+      - postgres-network
+    command: ["sh", "-c", "printf '%s' \"$$MONGO_KEY\" > /data/configdb/keyfile && chmod 600 /data/configdb/keyfile && exec mongod --replSet rs0 --bind_ip_all --keyFile /data/configdb/keyfile"]
+    depends_on:
+      mongo-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # CONTENEDOR DE UTILIDADES
+  # ========================================
+  mongo-utils:
+    image: mongo:7.0
+    container_name: mongo-utils
+    volumes:
+      - ./scripts:/scripts
+      - ./backups:/backups
+    networks:
+      - mongo-network
+      - postgres-network
+    depends_on:
+      - mongo-primary
+      - mongo-secondary1
+      - mongo-secondary2
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+volumes:
+  mongo1-data:
+  mongo1-config:
+  mongo2-data:
+  mongo2-config:
+  mongo3-data:
+  mongo3-config:
+
+networks:
+  mongo-network:
+    driver: bridge
+  postgres-network:
+    external: true  # Conecta con la red de PostgreSQL de Fase 1

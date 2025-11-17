@@ -1,0 +1,34 @@
+# Datos de MongoDB
+mongo-data/
+mongo1-data/
+mongo2-data/
+mongo3-data/
+
+# Backups
+backups/
+*.tar.gz
+*.backup
+*.dump
+*.bson
+
+# Archivos JSON de integración
+backups/integration/*.json
+
+# Logs
+*.log
+logs/
+
+# Configuración sensible
+.env
+*_password.txt
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Evidencias (opcional)
+evidencias/
